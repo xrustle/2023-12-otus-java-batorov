@@ -4,12 +4,14 @@ import ru.customtest.annotations.After;
 import ru.customtest.annotations.Before;
 import ru.customtest.annotations.Test;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 
 public final class TestRunner {
     static Logger logger = Logger.getLogger(TestRunner.class.getName());
@@ -17,62 +19,51 @@ public final class TestRunner {
     private TestRunner() {
     }
 
-    @SuppressWarnings({"squid:S3011", "squid:S3776"})
     public static <T> void test(Class<T> clazz) {
-        var methods = clazz.getDeclaredMethods();
-        var beforeMethods = new ArrayList<Method>();
-        var afterMethods = new ArrayList<Method>();
-        var testMethods = new ArrayList<Method>();
-        var constructor = clazz.getConstructors()[0];
-        AtomicInteger testsFailed = new AtomicInteger();
+        var beforeMethods = getMethods(Before.class, clazz);
+        var afterMethods = getMethods(After.class, clazz);
+        var testMethods = getMethods(Test.class, clazz);
 
-        Arrays.stream(methods).forEach(method -> {
-            if (method.isAnnotationPresent(Before.class)) {
-                beforeMethods.add(method);
-            }
-            if (method.isAnnotationPresent(After.class)) {
-                afterMethods.add(method);
-            }
-            if (method.isAnnotationPresent(Test.class)) {
-                testMethods.add(method);
-            }
-        });
+        var testsFailed = testMethods.stream()
+                .map(m -> TestRunner.executeTest(m, clazz, beforeMethods, afterMethods))
+                .mapToInt(Integer::valueOf)
+                .sum();
 
-        testMethods.forEach(testMethod -> {
-            try {
-                var testInstance = constructor.newInstance();
+        logger.log(Level.INFO, "Successful tests: {0}", testMethods.size() - testsFailed);
+        logger.log(Level.INFO, "Failed tests: {0}", testsFailed);
+        logger.log(Level.INFO, "Total test: {0}", testMethods.size());
+    }
 
-                beforeMethods.forEach(beforeMethod -> {
-                    try {
-                        beforeMethod.setAccessible(true);
-                        beforeMethod.invoke(testInstance);
-                    } catch (IllegalAccessException e) {
-                        logger.info("IllegalAccessException");
-                    } catch (InvocationTargetException e) {
-                        logger.info("InvocationTargetException");
-                    }
-                });
+    private static int executeTest(
+            Method testMethod, Class<?> inClass, List<Method> beforeMethods, List<Method> afterMethods) {
+        try {
+            var testClassInstance = inClass.getConstructor().newInstance();
 
-                testMethod.setAccessible(true);
-                testMethod.invoke(testInstance);
+            beforeMethods.forEach(method -> invokeTest(method, testClassInstance));
+            invokeTest(testMethod, testClassInstance);
+            afterMethods.forEach(method -> invokeTest(method, testClassInstance));
 
-                afterMethods.forEach(afterMethod -> {
-                    try {
-                        afterMethod.setAccessible(true);
-                        afterMethod.invoke(testInstance);
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        logger.info("Invoking exception");
-                    }
-                });
-            } catch (Exception e) {
-                logger.info("Test " + testMethod.getName() + " failed.");
-                testsFailed.getAndIncrement();
-            }
-            logger.info("Test " + testMethod.getName() + " successful.");
-        });
+        } catch (Exception e) {
+            logger.log(Level.INFO, "Test {0} failed.", testMethod.getName());
+            return 1;
+        }
+        logger.log(Level.INFO, "Test {0} successful.", testMethod.getName());
+        return 0;
+    }
 
-        logger.info("Successful tests: " + (testMethods.size() - testsFailed.get()));
-        logger.info("Failed tests: " + testsFailed.get());
-        logger.info("Total test: " + testMethods.size());
+    private static List<Method> getMethods(Class<? extends Annotation> withAnnotation, Class<?> fromClass) {
+        return Arrays.stream(fromClass.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(withAnnotation))
+                .toList();
+    }
+
+    @SuppressWarnings("squid:S3011")
+    private static <T> void invokeTest(Method method, T ofClassInstance) {
+        try {
+            method.setAccessible(true);
+            method.invoke(ofClassInstance);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new TestFailedException("Test failed", e);
+        }
     }
 }
