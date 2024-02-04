@@ -2,6 +2,7 @@ rootProject.name = "otus"
 include("hw01-gradle")
 include("hw04-generics")
 include("hw06-reflection")
+include("hw08-garbage-collector")
 
 pluginManagement {
     val dependencyManagement: String by settings
