@@ -1,9 +1,11 @@
+import io.freefair.gradle.plugins.lombok.LombokPlugin
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 import org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
 
 plugins {
     idea
     id("io.spring.dependency-management")
+    id("io.freefair.lombok") apply false
     id("org.springframework.boot") apply false
     id("name.remal.sonarlint") apply false
     id("com.diffplug.spotless") apply false
@@ -58,6 +60,8 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
+
+    apply<LombokPlugin>()
 
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
