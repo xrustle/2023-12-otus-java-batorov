@@ -6,9 +6,13 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 class Ioc {
+    private static final Map<Method, Boolean> checkedMethods = new HashMap<>();
+
     private Ioc() {
     }
 
@@ -36,11 +40,17 @@ class Ioc {
         }
 
         private boolean isLogAnnotationPresent(Method method) {
-            return Arrays.stream(myClass.getClass().getMethods())
+            if (checkedMethods.containsKey(method)) return checkedMethods.get(method);
+
+            var hasLogAnnotation = Arrays.stream(myClass.getClass().getMethods())
                     .filter(m -> m.getName().equals(method.getName()))
                     .filter(m -> m.getReturnType().equals(method.getReturnType()))
                     .filter(m -> Arrays.equals(m.getParameterTypes(), method.getParameterTypes()))
                     .anyMatch(m -> m.isAnnotationPresent(Log.class));
+
+            checkedMethods.put(method, hasLogAnnotation);
+
+            return hasLogAnnotation;
         }
 
         @Override
