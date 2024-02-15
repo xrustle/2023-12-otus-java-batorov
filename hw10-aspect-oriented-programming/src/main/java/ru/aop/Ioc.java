@@ -12,17 +12,17 @@ class Ioc {
     private Ioc() {
     }
 
-    static TestLoggingInterface createMyClass() {
-        InvocationHandler handler = new DemoInvocationHandler(new TestLogging());
+    static <T> Object instanceOf(Class<T> clazz) throws ReflectiveOperationException {
+        var constructor = clazz.getConstructor();
 
-        return (TestLoggingInterface) Proxy.newProxyInstance(
-                Ioc.class.getClassLoader(), new Class<?>[]{TestLoggingInterface.class}, handler);
+        InvocationHandler handler = new ProxyInvocationHandler<>(constructor.newInstance());
+        return Proxy.newProxyInstance(Ioc.class.getClassLoader(), clazz.getInterfaces(), handler);
     }
 
-    static class DemoInvocationHandler implements InvocationHandler {
-        private final TestLogging myClass;
+    static class ProxyInvocationHandler<T> implements InvocationHandler {
+        private final T myClass;
 
-        DemoInvocationHandler(TestLogging myClass) {
+        ProxyInvocationHandler(T myClass) {
             this.myClass = myClass;
         }
 
