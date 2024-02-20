@@ -30,6 +30,7 @@ allprojects {
     }
 
     val guava: String by project
+    val logback: String by project
     val testcontainersBom: String by project
 
     apply(plugin = "io.spring.dependency-management")
@@ -41,6 +42,7 @@ allprojects {
 
         dependencies {
             dependency("com.google.guava:guava:$guava")
+            dependency("ch.qos.logback:logback-classic:$logback")
         }
     }
 
@@ -72,8 +74,15 @@ subprojects {
     apply<com.diffplug.gradle.spotless.SpotlessPlugin>()
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
         java {
-            palantirJavaFormat("2.38.0")
+            palantirJavaFormat("2.38.0").style("GOOGLE")
+            importOrder("", "java", "\\#java", "javax", "\\#javax", "\\#")
         }
+    }
+
+    val implementation by configurations
+
+    dependencies {
+        implementation("ch.qos.logback:logback-classic")
     }
 
     tasks.withType<Test> {

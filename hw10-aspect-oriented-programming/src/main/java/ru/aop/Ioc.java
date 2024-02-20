@@ -11,51 +11,50 @@ import java.util.Map;
 
 @Slf4j
 class Ioc {
-    private static final Map<Method, Boolean> checkedMethods = new HashMap<>();
+  private static final Map<Method, Boolean> checkedMethods = new HashMap<>();
 
-    private Ioc() {
+  private Ioc() {}
+
+  static <T> Object instanceOf(Class<T> clazz) throws ReflectiveOperationException {
+    var constructor = clazz.getConstructor();
+
+    InvocationHandler handler = new ProxyInvocationHandler<>(constructor.newInstance());
+    return Proxy.newProxyInstance(Ioc.class.getClassLoader(), clazz.getInterfaces(), handler);
+  }
+
+  static class ProxyInvocationHandler<T> implements InvocationHandler {
+    private final T myClass;
+
+    ProxyInvocationHandler(T myClass) {
+      this.myClass = myClass;
     }
 
-    static <T> Object instanceOf(Class<T> clazz) throws ReflectiveOperationException {
-        var constructor = clazz.getConstructor();
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      if (isLogAnnotationPresent(method)) {
+        log.info("executed method: {}, param: {}", method.getName(), args);
+      }
 
-        InvocationHandler handler = new ProxyInvocationHandler<>(constructor.newInstance());
-        return Proxy.newProxyInstance(Ioc.class.getClassLoader(), clazz.getInterfaces(), handler);
+      return method.invoke(myClass, args);
     }
 
-    static class ProxyInvocationHandler<T> implements InvocationHandler {
-        private final T myClass;
+    private boolean isLogAnnotationPresent(Method method) {
+      if (checkedMethods.containsKey(method)) return checkedMethods.get(method);
 
-        ProxyInvocationHandler(T myClass) {
-            this.myClass = myClass;
-        }
+      var hasLogAnnotation = Arrays.stream(myClass.getClass().getMethods())
+          .filter(m -> m.getName().equals(method.getName()))
+          .filter(m -> m.getReturnType().equals(method.getReturnType()))
+          .filter(m -> Arrays.equals(m.getParameterTypes(), method.getParameterTypes()))
+          .anyMatch(m -> m.isAnnotationPresent(Log.class));
 
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (isLogAnnotationPresent(method)) {
-                log.info("executed method: {}, param: {}", method.getName(), args);
-            }
+      checkedMethods.put(method, hasLogAnnotation);
 
-            return method.invoke(myClass, args);
-        }
-
-        private boolean isLogAnnotationPresent(Method method) {
-            if (checkedMethods.containsKey(method)) return checkedMethods.get(method);
-
-            var hasLogAnnotation = Arrays.stream(myClass.getClass().getMethods())
-                    .filter(m -> m.getName().equals(method.getName()))
-                    .filter(m -> m.getReturnType().equals(method.getReturnType()))
-                    .filter(m -> Arrays.equals(m.getParameterTypes(), method.getParameterTypes()))
-                    .anyMatch(m -> m.isAnnotationPresent(Log.class));
-
-            checkedMethods.put(method, hasLogAnnotation);
-
-            return hasLogAnnotation;
-        }
-
-        @Override
-        public String toString() {
-            return "DemoInvocationHandler{" + "myClass=" + myClass + '}';
-        }
+      return hasLogAnnotation;
     }
+
+    @Override
+    public String toString() {
+      return "DemoInvocationHandler{" + "myClass=" + myClass + '}';
+    }
+  }
 }
