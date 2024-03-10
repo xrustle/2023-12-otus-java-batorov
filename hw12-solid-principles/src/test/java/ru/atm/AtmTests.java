@@ -1,6 +1,7 @@
 package ru.atm;
 
 import org.junit.jupiter.api.Test;
+import ru.atm.exception.SlotNotFoundException;
 import ru.atm.exception.WithdrawException;
 
 import java.util.HashMap;
@@ -15,7 +16,7 @@ class AtmTests {
   @Test
   void atmLoadCashTest() {
     var slotSet = new SlotSet(new Slot(FIFTY), new Slot(HUNDRED));
-    var atm = new Atm(slotSet, "ATM 1");
+    Atm atm = new AtmImpl(slotSet, "ATM 1");
 
     Map<Denomination, Integer> cash = new HashMap<>();
     cash.put(FIFTY, 3);
@@ -29,7 +30,7 @@ class AtmTests {
   @Test
   void atmWithdrawCashTest() {
     var slotSet = new SlotSet(new Slot(FIFTY), new Slot(HUNDRED));
-    var atm = new Atm(slotSet, "ATM 1");
+    Atm atm = new AtmImpl(slotSet, "ATM 1");
     Map<Denomination, Integer> cash = new HashMap<>();
 
     cash.put(FIFTY, 3);
@@ -47,7 +48,7 @@ class AtmTests {
   @Test
   void atmWithdrawCashExceptionTest() {
     var slotSet = new SlotSet(new Slot(FIFTY), new Slot(HUNDRED));
-    var atm = new Atm(slotSet, "ATM 1");
+    Atm atm = new AtmImpl(slotSet, "ATM 1");
     Map<Denomination, Integer> cash = new HashMap<>();
 
     cash.put(FIFTY, 3);
@@ -56,5 +57,16 @@ class AtmTests {
     atm.loadCash(cash);
 
     assertThrows(WithdrawException.class, () -> atm.withdrawCash(630));
+  }
+
+  @Test
+  void atmAddCashSlotNotFoundExceptionTest() {
+    var slotSet = new SlotSet(new Slot(FIFTY));
+    Atm atm = new AtmImpl(slotSet, "ATM 1");
+    Map<Denomination, Integer> cash = new HashMap<>();
+
+    cash.put(HUNDRED, 5);
+
+    assertThrows(SlotNotFoundException.class, () -> atm.loadCash(cash));
   }
 }
