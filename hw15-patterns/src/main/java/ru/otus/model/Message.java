@@ -50,21 +50,22 @@ public class Message {
     this.field13 = field13;
   }
 
-  public Message(Message template) {
-    this.id = template.getId();
-    this.field1 = template.getField1();
-    this.field2 = template.getField2();
-    this.field3 = template.getField3();
-    this.field4 = template.getField4();
-    this.field5 = template.getField5();
-    this.field6 = template.getField6();
-    this.field7 = template.getField7();
-    this.field8 = template.getField8();
-    this.field9 = template.getField9();
-    this.field10 = template.getField10();
-    this.field11 = template.getField11();
-    this.field12 = template.getField12();
-    this.field13 = new ObjectForMessage(template.getField13());
+  public Message copy() {
+    return new Message(
+        this.id,
+        this.field1,
+        this.field2,
+        this.field3,
+        this.field4,
+        this.field5,
+        this.field6,
+        this.field7,
+        this.field8,
+        this.field9,
+        this.field10,
+        this.field11,
+        this.field12,
+        this.field13.copy());
   }
 
   public long getId() {

@@ -6,10 +6,12 @@ import java.util.List;
 public class ObjectForMessage {
   private List<String> data;
 
-  public ObjectForMessage() {}
+  public ObjectForMessage copy() {
+    var objectForMessage = new ObjectForMessage();
 
-  public ObjectForMessage(ObjectForMessage template) {
-    this.data = new ArrayList<>(template.getData());
+    objectForMessage.setData(new ArrayList<>(this.getData()));
+
+    return objectForMessage;
   }
 
   public List<String> getData() {
