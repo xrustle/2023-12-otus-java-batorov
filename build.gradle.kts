@@ -29,6 +29,7 @@ allprojects {
         mavenCentral()
     }
 
+    val gson: String by project
     val guava: String by project
     val logback: String by project
     val testcontainersBom: String by project
@@ -41,6 +42,7 @@ allprojects {
         }
 
         dependencies {
+            dependency("com.google.code.gson:gson:$gson")
             dependency("com.google.guava:guava:$guava")
             dependency("ch.qos.logback:logback-classic:$logback")
         }
