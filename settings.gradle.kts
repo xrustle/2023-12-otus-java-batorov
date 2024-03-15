@@ -6,6 +6,7 @@ include("hw08-garbage-collector")
 include("hw10-aspect-oriented-programming")
 include("hw12-solid-principles")
 include("hw15-patterns")
+include("hw16-serialization")
 
 pluginManagement {
     val dependencyManagement: String by settings
