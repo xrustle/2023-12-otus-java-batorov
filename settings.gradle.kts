@@ -7,6 +7,7 @@ include("hw10-aspect-oriented-programming")
 include("hw12-solid-principles")
 include("hw15-patterns")
 include("hw16-serialization")
+include("hw18-jdbc")
 
 pluginManagement {
     val dependencyManagement: String by settings
