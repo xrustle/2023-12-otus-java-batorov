@@ -1,7 +1,9 @@
 dependencies {
-    testImplementation ("org.junit.jupiter:junit-jupiter-api")
-    testImplementation ("org.junit.jupiter:junit-jupiter-engine")
-    testImplementation ("org.assertj:assertj-core")
-    testImplementation ("org.mockito:mockito-junit-jupiter")
+    implementation("com.google.code.gson:gson")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.assertj:assertj-core")
+    testImplementation("org.mockito:mockito-junit-jupiter")
 }
 
