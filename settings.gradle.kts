@@ -8,6 +8,7 @@ include("hw12-solid-principles")
 include("hw15-patterns")
 include("hw16-serialization")
 include("hw18-jdbc")
+include("hw21-hibernate")
 
 pluginManagement {
     val dependencyManagement: String by settings
